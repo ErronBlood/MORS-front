@@ -6,8 +6,6 @@ import { PatientsPage } from './pages/PatientsPage'
 function App() {
   return (
     <>
-    
-    
     <BrowserRouter>
     <Header/>
     <SideBar/>
