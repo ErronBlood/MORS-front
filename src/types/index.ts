@@ -1,5 +1,8 @@
 //------Responses and Requests------
 
+import type { Dispatch, SetStateAction } from "react"
+
+//Patients
 export interface PatientResponse{
     id: number,
     fullName: string
@@ -22,6 +25,63 @@ export interface PatientPatch{
     status: "ACTIVE" | "INACTIVE",
 }
 
+//Doctors
+
+export interface DoctorResponse{
+    id: number,
+    fullName: string
+    licenseNumber: string,
+    specialty: SpecialtyResponse,
+    doctorSchedules:DoctorScheduleResponse,
+    appointments: AppointmentResponse[]
+
+}
+
+export interface DoctorCreate{
+    fullName: string,
+    email: string,
+    licenseNumber: string
+}
+
+export interface DoctorPatch{
+    fullName:string,
+    email: string,
+    licenseNumber: string,
+    specialtyId: number
+}
+
+//Doctor Schedule
+
+export interface DoctorScheduleResponse{
+    id: number,
+    dayOfWeek: string,
+    startTime: string,
+    endTime: string,
+    doctorId: number
+}
+
+//Specialty
+export interface SpecialtyResponse{
+    id: number,
+    name: string,
+    description: string
+}
+
+export interface SpecialtyCreate{
+    name: string,
+    description: string
+}
+
+//Office
+export interface OfficeResponse{
+    id: number,
+    name: string,
+    location: string,
+    status: "AVAILABLE" | "UNAVAILABLE" | "MAINTENANCE",
+    appointments: AppointmentResponse[]
+}
+
+//Appointments
 export interface AppointmentResponse{
     id: number,
     startAt: string,
@@ -32,6 +92,40 @@ export interface AppointmentResponse{
     officeId: number,
     appointmentType: number
 }
+
+export interface AppointmentCreate{
+    startAt: string,
+    endAt: string,
+    patientId: number,
+    doctorId: number,
+    appointmentTypeId: number
+}
+
+export interface AppointmentCancel{
+    id: number,
+    cancellationReason: string
+}
+
+export interface AppointmentCompletion{
+    id: number,
+    observations: string
+}
+
+//Appointment Type
+
+export interface AppointmentTypeResponse{
+    id: number,
+    name: string
+    durationMinutes: number,
+    description: string
+}
+
+export interface AppointmentTypeCreate{
+    name: string
+    durationMinutes: number,
+    description: string
+}
+
 //-----Props-----
 
 export interface MetricCardProps{
@@ -61,7 +155,7 @@ export interface ButtonProps{
 
 export interface DropdownProps{
     display: string
-    value: string
+    value: string | number
 }
 
 export interface DropdownOptions<DropdownProps>{
@@ -73,6 +167,38 @@ export interface FormProps{
     type: string,
     placeHolder: string,
     key: string
+}
+
+//--------Context---------
+
+export interface PatientsContextType{
+    patients: PatientResponse[]
+    setPatients: Dispatch<SetStateAction<PatientResponse[]>>
+}
+
+export interface DoctorsContextType{
+    doctors: DoctorResponse[],
+    setDoctors: Dispatch<SetStateAction<DoctorResponse[]>>
+}
+
+export interface AppointmentTypesContextType{
+    appointmentTypes: AppointmentTypeResponse[],
+    setAppointmentTypes: Dispatch<SetStateAction<AppointmentTypeResponse[]>>
+}
+
+export interface AppointmentsContextType{
+    appointments: AppointmentResponse[],
+    setAppointments: Dispatch<SetStateAction<AppointmentResponse[]>>
+}
+
+export interface OfficeContextType{
+    offices: OfficeResponse[],
+    setOffices: Dispatch<SetStateAction<OfficeResponse[]>>
+}
+
+export interface SpecialtiesContextTyoe{
+    specialties: SpecialtyResponse[],
+    setSpecialties: Dispatch<SetStateAction<SpecialtyResponse[]>>
 }
 
 //------ Connection ---------

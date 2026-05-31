@@ -3,12 +3,13 @@ import { Button, FormField, Table, Dropdown, PopUp } from "../components"
 import type { PatientResponse, TableColumns, DropdownProps, FormProps, PatientCreate, PatientPatch } from "../types"
 import { GetAllPatients, CreatePatient, GetPatient, PatchPatient } from '../service/PatientApi'
 import { useRequest } from "../service/GeneralApi"
+import {usePatients } from "../context/context"
 
 export const PatientsPage = () => {
 
 
     const {executeRequest} = useRequest()
-    const [patients, setPatients] = useState<PatientResponse[]>([])
+    const {patients, setPatients} = usePatients()
     const [selectedPatient, setSelectedPatient] = useState(null)
     const [isOpen, setIsOpen] = useState(false)
 
@@ -61,12 +62,12 @@ export const PatientsPage = () => {
             setSelectedPatient(patchedPatient)
         }
     }
-
-
+    
     useEffect(()=>{
         LoadPatients()
     }, [])
 
+    
     return(
         <main className="container-fluid p-4">
             <div>
@@ -78,7 +79,7 @@ export const PatientsPage = () => {
                     type={f.type} placeHolder={f.placeHolder} key={f.key}/>) )}
                     <Button title="Registrar" behavior={() => {}}/>
                     <Button title="Cancelar" behavior={() => {setIsOpen(false)}}/>
-                 </PopUp>
+                </PopUp>
                 <Dropdown data={dropDownOptions}/>
                 <Table columns={columns} data={patients}/>
             </div>
