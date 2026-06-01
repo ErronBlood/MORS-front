@@ -1,13 +1,15 @@
-export const Dropdown = () => {
+import type { DropdownOptions, DropdownProps} from "../types"
+
+export const Dropdown = ({data} :DropdownOptions<DropdownProps>) => {
     
     {
         //these options must be dynamic too
     }
     return(
     <select className="form-select">
-        <option value="my">my</option>
-        <option value="fucking"></option>
-        <option value="dick"></option>
+        {data.map(d => (
+            <option value={d.value}>{d.display}</option>
+        ))}
     </select>
     )
 }
