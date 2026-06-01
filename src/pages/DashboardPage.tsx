@@ -1,7 +1,10 @@
 import { MetricCard } from "../components/MetricCard"
+import { usePatients } from "../context/context"
 
 export const DashboardPage = () => {
-    // This is a placeholder for the real dashboard logic consuming Reports API
+    
+    const {patients} = usePatients()
+
     return(
         <main className="container-fluid p-4" style={{ backgroundColor: '#f0f4f8', minHeight: '100vh' }}>
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -9,7 +12,7 @@ export const DashboardPage = () => {
             </div>
             <div className="row g-4 mb-4">
                 <div className="col-md-3">
-                    <MetricCard label="Ocupación de Consultorios" value = {100} info="DICK" />
+                    <MetricCard label="Active Patients" value = {patients.length} info='' />
                 </div>
                 <div className="col-md-3">
                     <MetricCard label="Productividad Doctores"  value = {100} info="DICK" />

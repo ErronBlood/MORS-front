@@ -1,6 +1,6 @@
 //------Responses and Requests------
 
-import type { Dispatch, SetStateAction } from "react"
+import type { ChangeEvent, Dispatch, SetStateAction } from "react"
 
 //Patients
 export interface PatientResponse{
@@ -40,7 +40,8 @@ export interface DoctorResponse{
 export interface DoctorCreate{
     fullName: string,
     email: string,
-    licenseNumber: string
+    licenseNumber: string,
+    specialtyId: number
 }
 
 export interface DoctorPatch{
@@ -141,6 +142,7 @@ export interface MetricCardProps{
 export interface TableColumns<T>{
     header:string,
     key: keyof T
+    render?: (value: T[keyof T], row: T) => string
 }
 
 export interface TableProps<T>{
@@ -160,6 +162,8 @@ export interface DropdownProps{
 
 export interface DropdownOptions<DropdownProps>{
     data:DropdownProps[]
+    value?: string | number,
+    onChange?: (value: string|number)=> void
 }
 
 export interface FormProps{
@@ -167,6 +171,9 @@ export interface FormProps{
     type: string,
     placeHolder: string,
     key: string
+    value?: string | number,
+    onChange?: (e: ChangeEvent<HTMLInputElement>) => void
+    
 }
 
 //--------Context---------

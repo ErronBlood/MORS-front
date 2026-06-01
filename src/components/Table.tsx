@@ -19,7 +19,8 @@ export const Table =<T,> ({columns, data}: TableProps<T>) => {
                             <tr key={i}>
                                 {columns.map(col => (
                                     <td key={String(col.key)}>
-                                        {String(row[col.key]) ?? ""}
+                                        {col.render ? col.render(row[col.key], row):
+                                        String(row[col.key]) ?? ""}
                                     </td>
                             ))}
                             </tr>

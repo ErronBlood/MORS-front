@@ -12,10 +12,10 @@ export const AppointmentsPage = () => {
         const [SelectedAppointment, setSelectedAppointment] = useState(null)
 
         const {appointments, setAppointments} = useAppointments()
-        const {patients, setPatients} = usePatients()
-        const {doctors, setDoctors} = useDoctors()
-        const {appointmentTypes, setAppointmentTypes} = useAppointmentTypes()
-        const {offices, setOffices} = useOffices()
+        const {patients} = usePatients()
+        const {doctors} = useDoctors()
+        const {appointmentTypes} = useAppointmentTypes()
+        const {offices} = useOffices()
 
 
         const statesDropdown: DropdownProps[]= [

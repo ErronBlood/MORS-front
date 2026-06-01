@@ -14,6 +14,19 @@ export const CatalogPage = () => {
         const [SelectedAppointmentType, setSelectedAppointmentType] = useState(null)
         const [selectedSpecialty, setSelectedSpecialty] = useState(null)
 
+        const blankTypeForm = {
+            name: '',
+            durationMinutes: 0,
+            description: ''
+        }
+
+        const blankSpecialtyForm = {
+            name : '',
+            description: ''
+        }
+
+        const [formType, setFormType] = useState<AppointmentTypeCreate>(blankTypeForm)
+        const [formSpecialty, setFormSpecialty] = useState<SpecialtyCreate>(blankSpecialtyForm)
 
         const {appointmentTypes, setAppointmentTypes} = useAppointmentTypes()
         const {specialties, setSpecialties} = useSpecialties()
@@ -84,24 +97,49 @@ export const CatalogPage = () => {
     return(
         <main className="container-fluid p-4">
             <div>
-                <h1>Patients</h1>
-                <p>current x amount of y patients</p>
+                <h1>Catalog</h1>
                 <div>
+                    <p></p>
                     <Button title="+ New Specialty" behavior={()=> setIsOpenSpecialty(true)}/>
                     <PopUp isOpen = {isOpenSpecialty} onClose={()=> setIsOpenSpecialty(false)}>
-                        {specialtyFields.map(f => (<FormField label={f.label} 
-                        type={f.type} placeHolder={f.placeHolder} key={f.key}/>) )}
-                        <Button title="Registrar" behavior={() => {}}/>
+                        {specialtyFields.map(f => (
+                        <FormField 
+                            label={f.label} 
+                            type={f.type} 
+                            placeHolder={f.placeHolder} 
+                            key={f.key}
+                            value = {formSpecialty[f.key as keyof SpecialtyCreate]}
+                            onChange={(e) => setFormSpecialty({...formSpecialty, [f.key]: e.target.value})}
+                        />) )}
+                        <Button title="Registrar" behavior={() => {handleCreateSpecialty(formSpecialty)
+                            setIsOpenSpecialty(false)
+                            setFormSpecialty(blankSpecialtyForm)
+                        }}/>
                         <Button title="Cancelar" behavior={() => {setIsOpenSpecialty(false)}}/>
                     </PopUp>
                 </div>
                 <div>
                     <Button title="+ New Type" behavior={()=> setIsOpenType(true)}/>
                     <PopUp isOpen = {isOpenType} onClose={()=> setIsOpenType(false)}>
-                        {appointmentTypeFields.map(f => (<FormField label={f.label} 
-                        type={f.type} placeHolder={f.placeHolder} key={f.key}/>) )}
-                        <Dropdown data = {typesTimes}></Dropdown>
-                        <Button title="Registrar" behavior={() => {}}/>
+                    {appointmentTypeFields.map(f => (
+                        <FormField 
+                            label={f.label} 
+                            type={f.type} 
+                            placeHolder={f.placeHolder} 
+                            key={f.key}
+                            value = {formType[f.key as keyof AppointmentTypeCreate]}
+                            onChange={(e) => setFormType({...formType, [f.key]: e.target.value})}
+                        />) )}
+                        <Dropdown data = {typesTimes}
+                                value={formType.durationMinutes}
+                                onChange={(value) => setFormType({
+                                    ...formType, durationMinutes: Number(value)
+                                })}
+                        ></Dropdown>
+                        <Button title="Registrar" behavior={() => {handleCreateAppointmentType(formType)
+                            setIsOpenType(false)
+                            setFormType(blankTypeForm)
+                        }}/>
                         <Button title="Cancelar" behavior={() => {setIsOpenType(false)}}/>
                     </PopUp>
                 </div>
