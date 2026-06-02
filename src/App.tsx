@@ -5,11 +5,43 @@ import { PatientsPage } from './pages/PatientsPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { DoctorPage } from './pages/DoctorsPage'
 import { AppointmentsPage } from './pages/AppointmentsPage'
-import { PatientsProvider, DoctorsProvider, AppointmentTypeProvider, OfficesProvider, AppointmentProvider, SpecialtiesProvider } from './context/context'
+import { PatientsProvider, DoctorsProvider, AppointmentTypeProvider, OfficesProvider, AppointmentProvider, SpecialtiesProvider, usePatients, useDoctors, useSpecialties, useOffices, useAppointmentTypes, useAppointments } from './context/context'
 import { CatalogPage } from './pages/CatalogPage'
+import { OfficesPage } from './pages/OfficesPage'
+import { useRequest } from './service/GeneralApi'
+import { useEffect } from 'react'
+import { GetAllPatients } from './service/PatientApi'
+import { GetAllDoctors } from './service/DoctorApi'
+import { GetAllSpecialties } from './service/SpecialtyApi'
+import { GetAllOffices } from './service/OfficeApi'
+import { GetAllAppointmentTypes } from './service/AppointmentTypeApi'
+import { GetAllAppointments } from './service/AppointmentApi'
 
+
+  const AppDataLoader = () => {
+    const { executeRequest } = useRequest()
+    const { setPatients } = usePatients()
+    const { setDoctors } = useDoctors()
+    const { setSpecialties } = useSpecialties()
+    const { setOffices } = useOffices()
+    const { setAppointmentTypes } = useAppointmentTypes()
+    const { setAppointments } = useAppointments()
+  
+    useEffect(() => {
+        executeRequest('Loaded', GetAllPatients).then(d => d && setPatients(d))
+        executeRequest('Loaded', GetAllDoctors).then(d => d && setDoctors(d))
+        executeRequest('Loaded', GetAllSpecialties).then(d => d && setSpecialties(d))
+        executeRequest('Loaded', GetAllOffices).then(d => d && setOffices(d))
+        executeRequest('Loaded', GetAllAppointmentTypes).then(d => d && setAppointmentTypes(d))
+        executeRequest('Loaded', GetAllAppointments).then(d => d && setAppointments(d))
+
+    }, [])
+  
+    return null
+}
 
 function App() {
+
   return (
     <>
     <BrowserRouter>
@@ -19,6 +51,7 @@ function App() {
       <OfficesProvider>
       <AppointmentProvider>
       <SpecialtiesProvider>
+        <AppDataLoader/>
         <Header/>
         <SideBar/>
         <Routes>
@@ -28,6 +61,7 @@ function App() {
           <Route path = '/AppointmentsPage' element = {<AppointmentsPage/>}></Route>
           <Route path = '/DoctorsPage' element = {<DoctorPage/>}></Route>
           <Route path = '/CatalogPage' element = {<CatalogPage/>}></Route>
+          <Route path = '/OfficesPage' element = {<OfficesPage/>}></Route>
         </Routes>
       </SpecialtiesProvider>
       </AppointmentProvider>

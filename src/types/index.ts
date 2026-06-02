@@ -1,6 +1,12 @@
 //------Responses and Requests------
 
-import type { ChangeEvent, Dispatch, SetStateAction } from "react"
+import type { ChangeEvent, Dispatch, ReactNode, SetStateAction } from "react"
+
+//Status
+
+export type PatientStatus = "ACTIVE" | "INACTIVE"
+export type OfficeStatus = "AVAILABLE" | "UNAVAILABLE" | "MAINTENANCE"
+export type DayOfWeek = "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY"
 
 //Patients
 export interface PatientResponse{
@@ -8,7 +14,7 @@ export interface PatientResponse{
     fullName: string
     email: string,
     phone: string,
-    status: "ACTIVE" | "INACTIVE",
+    status: PatientStatus,
     appointments: AppointmentResponse[]
 }
 
@@ -22,7 +28,7 @@ export interface PatientPatch{
     fullName: string,
     email: string,
     phone: string,
-    status: "ACTIVE" | "INACTIVE",
+    status: PatientStatus
 }
 
 //Doctors
@@ -30,7 +36,9 @@ export interface PatientPatch{
 export interface DoctorResponse{
     id: number,
     fullName: string
+    email:string,
     licenseNumber: string,
+    active: boolean
     specialty: SpecialtyResponse,
     doctorSchedules:DoctorScheduleResponse,
     appointments: AppointmentResponse[]
@@ -47,6 +55,7 @@ export interface DoctorCreate{
 export interface DoctorPatch{
     fullName:string,
     email: string,
+    active: boolean
     licenseNumber: string,
     specialtyId: number
 }
@@ -55,10 +64,22 @@ export interface DoctorPatch{
 
 export interface DoctorScheduleResponse{
     id: number,
-    dayOfWeek: string,
+    dayOfWeek: DayOfWeek,
     startTime: string,
     endTime: string,
     doctorId: number
+}
+
+export interface DoctorScheduleCreate{
+    dayOfWeek: DayOfWeek,
+    startTime: string,
+    endTime: string,
+    doctorId: number
+}
+
+export interface AvailabilitySlotResponse{
+    startTime: string,
+    endTime: string
 }
 
 //Specialty
@@ -78,8 +99,24 @@ export interface OfficeResponse{
     id: number,
     name: string,
     location: string,
-    status: "AVAILABLE" | "UNAVAILABLE" | "MAINTENANCE",
+    status: OfficeStatus,
     appointments: AppointmentResponse[]
+}
+
+export interface OfficeCreate{
+    name: string,
+    location: string,
+    openingHour: string,
+    closingHour: string
+}
+
+export interface OfficePatch{
+    name: string,
+    location: string,
+    status: string,
+    openingHour: string,
+    closingHour: string,
+    appointments?: AppointmentResponse[]
 }
 
 //Appointments
@@ -99,6 +136,7 @@ export interface AppointmentCreate{
     endAt: string,
     patientId: number,
     doctorId: number,
+    officeId: number
     appointmentTypeId: number
 }
 
@@ -127,6 +165,32 @@ export interface AppointmentTypeCreate{
     description: string
 }
 
+//Reports
+
+export interface OfficeOccupancy{
+    id: number,
+    name:string,
+    location:string,
+    openingHour:string,
+    closingHour:string,
+    busyHours:number,
+    availableHours:number,
+    occupancyPercent:number
+}
+
+export interface PatientNoShowResponse{
+    id:number,
+    fullName:string,
+    noShowCount:number
+}
+
+export interface DoctorProductivityReport{
+    doctorInfo: DoctorResponse,
+    completedAppointments: number,
+    totalAppointments: number,
+    productivityPercent: number
+}
+
 //-----Props-----
 
 export interface MetricCardProps{
@@ -142,7 +206,7 @@ export interface MetricCardProps{
 export interface TableColumns<T>{
     header:string,
     key: keyof T
-    render?: (value: T[keyof T], row: T) => string
+    render?: (value: T[keyof T], row: T) => ReactNode
 }
 
 export interface TableProps<T>{
@@ -157,21 +221,21 @@ export interface ButtonProps{
 
 export interface DropdownProps{
     display: string
-    value: string | number
+    value: string | number | boolean
 }
 
 export interface DropdownOptions<DropdownProps>{
     data:DropdownProps[]
-    value?: string | number,
+    value?: string | number | boolean,
     onChange?: (value: string|number)=> void
 }
 
 export interface FormProps{
     label: string
     type: string,
-    placeHolder: string,
+    placeHolder?: string,
     key: string
-    value?: string | number,
+    value?: string | number | boolean | AppointmentResponse[],
     onChange?: (e: ChangeEvent<HTMLInputElement>) => void
     
 }
