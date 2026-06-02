@@ -1,2 +1,2 @@
-export * from './HomePage'
-export * from './PatientsPage'
+export {PatientsPage} from './PatientsPage'
+export {DashboardPage} from './DashboardPage'
