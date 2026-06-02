@@ -89,13 +89,8 @@ export const CatalogPage = () => {
         }
     }
 
-    useEffect(() => {
-        LoadAppointmentTypes()
-        LoadSpecialties()
-    }, [])
-
     return(
-        <main className="container-fluid p-4">
+        <main className="main-content">
             <div>
                 <h1>Catalog</h1>
                 <div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Button, FormField, Table, Dropdown, PopUp } from "../components"
-import type { PatientResponse, TableColumns, DropdownProps, FormProps, PatientCreate, PatientPatch, DropdownOptions } from "../types"
+import type { PatientResponse,PatientStatus, TableColumns, DropdownProps, FormProps, PatientCreate, PatientPatch, DropdownOptions } from "../types"
 import { GetAllPatients, CreatePatient, GetPatient, PatchPatient } from '../service/PatientApi'
 import { useRequest } from "../service/GeneralApi"
 import {usePatients } from "../context/context"
@@ -12,16 +12,21 @@ export const PatientsPage = () => {
     const {patients, setPatients} = usePatients()
 
     
-    const [selectedPatient, setSelectedPatient] = useState(null)
+    const [selectedPatient, setSelectedPatient] = useState<PatientResponse>()
+    const [isEditOpen,setIsEditOpen] = useState(false)
     const [isOpen, setIsOpen] = useState(false)
+    const [isViewOpen, setIsViewOpen] = useState(false)
     const [statusFilter, setStatusFilter] = useState('allstates')
     
     const blankForm = {
         fullName:'',
         email: '',
-        phone:''
+        phone:'',
+        status: 'ACTIVE'
     }
-    const [formData, setFormData] = useState<PatientCreate>(blankForm)
+
+    const [createForm, setCreateForm] = useState<PatientCreate>(blankForm)
+    const [editForm, setEditForm] = useState<PatientPatch>(blankForm)
     
     const filteredPatients = patients.filter(p => statusFilter === 'allstates' ? true: p.status === statusFilter )
 
@@ -32,7 +37,19 @@ export const PatientsPage = () => {
         {display: 'Inactive', value: 'INACTIVE'}],
     }
 
-    const formFields :FormProps[]= [
+     const editDropdown: DropdownOptions<DropdownProps>={
+        data:  [
+        {display: 'Active', value: 'ACTIVE'},
+        {display: 'Inactive', value: 'INACTIVE'}],
+    }
+
+    const createFields :FormProps[]= [
+        {label:'Full Name', type:'text', placeHolder:'Ex. Maria Garcia', key:'fullName'},
+        {label:'Email', type:'text', placeHolder:'email@uni.edu.co', key:'email'},
+        {label:'Phone Number', type:'text', placeHolder:'300 000 0000', key:'phone'}
+    ]
+    
+    const editFields :FormProps[]= [
         {label:'Full Name', type:'text', placeHolder:'Ex. Maria Garcia', key:'fullName'},
         {label:'Email', type:'text', placeHolder:'email@uni.edu.co', key:'email'},
         {label:'Phone Number', type:'text', placeHolder:'300 000 0000', key:'phone'}
@@ -42,7 +59,21 @@ export const PatientsPage = () => {
         {header: "id", key: "id"},
         {header: "email", key: "email"},
         {header: "phone", key: "phone"},
-        {header: "state", key: "status"}
+        {header: "state", key: "status"},
+        {header: "Actions", key: "id", render: (_value, row: any) => (
+            <div>
+                <Button title="edit" behavior={() => {setSelectedPatient(row)
+                    setEditForm({
+                        fullName: row.fullName,
+                        email: row.email,
+                        phone: row.phone,
+                        status: row.status
+                    })
+                    setIsEditOpen(true); }}/>
+                <Button title="View" behavior={() => {setSelectedPatient(row)
+                    setIsViewOpen(true);}}/>
+            </div>
+        )}
     ]
 
     async function LoadPatients(){
@@ -82,30 +113,64 @@ export const PatientsPage = () => {
 
     
     return(
-        <main className="container-fluid p-4">
+        <main className="main-content">
             <div>
                 <h1>Patients</h1>
-                <p>current {patients.filter(p=> p.status === "ACTIVE").length}
-                     amount of {patients.length} patients</p>
+                <p>current active patients: {patients.filter(p=> p.status === "ACTIVE").length}</p>
+                <p>total registered patients: {patients.length}</p>
                 <Button title="+ New Patient" behavior={()=> setIsOpen(true)}/>
                 <PopUp isOpen = {isOpen} onClose={()=> setIsOpen(false)}>
-                    {formFields.map(f => (
+                    {createFields.map(f => (
                         <FormField 
                             label={f.label} 
                             type={f.type} 
                             placeHolder={f.placeHolder} 
                             key={f.key}
-                            value = {formData[f.key as keyof PatientCreate]}
-                            onChange={(e) => setFormData({...formData, [f.key]: e.target.value})}
+                            value = {createForm[f.key as keyof PatientCreate]}
+                            onChange={(e) => setCreateForm({...createForm, [f.key]: e.target.value})}
                             />) )}
-                    <Button title="Registrar" behavior={() => {handleCreate(formData)
+                    <Button title="Save" behavior={() => {handleCreate(createForm)
                         setIsOpen(false)
-                        setFormData(blankForm)
+                        setCreateForm(blankForm)
                     }}/>
-                    <Button title="Cancelar" behavior={() => {setIsOpen(false)
-                        setFormData(blankForm)
+                    <Button title="Cancel" behavior={() => {setIsOpen(false)
+                        setCreateForm(blankForm)
                     }}/>
                 </PopUp>
+
+                <PopUp isOpen={isEditOpen} onClose={() => setIsEditOpen(false)}>
+                    {editFields.map(f => (
+                        <FormField 
+                            label={f.label} 
+                            type={f.type} 
+                            placeHolder={f.placeHolder} 
+                            key={f.key}
+                            value = {editForm[f.key as keyof PatientPatch]}
+                            onChange={(e) => setEditForm({...editForm, [f.key]: e.target.value})}
+                            />) )}
+                        <Dropdown data = {editDropdown.data}
+                        value={editForm.status}
+                        onChange={(value) => setEditForm({...editForm, status: value as PatientStatus})}
+                        />
+                        <Button title="Edit" behavior={() => {handlePatch(editForm, Number(selectedPatient?.id))
+                            setIsEditOpen(false)
+                            setEditForm(blankForm)
+                        }}/>
+                         <Button title="Cancel" behavior={() => {setIsEditOpen(false)
+                        setEditForm(blankForm)
+                        }}/>
+                </PopUp>
+                
+                <PopUp isOpen={isViewOpen} onClose={() => setIsViewOpen(false)}>
+                    <div>
+                        <p><strong>Name:</strong> {selectedPatient?.fullName}</p>
+                        <p><strong>Email:</strong> {selectedPatient?.email}</p>
+                        <p><strong>Phone:</strong> {selectedPatient?.phone}</p>
+                        <p><strong>Status:</strong> {selectedPatient?.status}</p>
+                    </div>
+                    <Button title="Cancel" behavior={() => {setIsViewOpen(false)}}/>
+                </PopUp>
+
                 <Dropdown data={dropDownOptions.data}
                         value ={statusFilter}
                         onChange={(value) => setStatusFilter(String(value))}/>
