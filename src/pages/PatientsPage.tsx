@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Button, FormField, Table, Dropdown, PopUp } from "../components"
-import type { PatientResponse,PatientStatus, TableColumns, DropdownProps, FormProps, PatientCreate, PatientPatch, DropdownOptions } from "../types"
+import type { PatientResponse,PatientStatus, TableColumns, DropdownProps, FormProps, PatientCreate, PatientPatch, DropdownOptions, PatientDoctorStatus } from "../types"
 import { GetAllPatients, CreatePatient, GetPatient, PatchPatient } from '../service/PatientApi'
 import { useRequest } from "../service/GeneralApi"
 import {usePatients } from "../context/context"
@@ -150,7 +150,7 @@ export const PatientsPage = () => {
                             />) )}
                         <Dropdown data = {editDropdown.data}
                         value={editForm.status}
-                        onChange={(value) => setEditForm({...editForm, status: value as PatientStatus})}
+                        onChange={(value) => setEditForm({...editForm, status: value as PatientDoctorStatus})}
                         />
                         <Button title="Edit" behavior={() => {handlePatch(editForm, Number(selectedPatient?.id))
                             setIsEditOpen(false)

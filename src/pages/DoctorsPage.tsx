@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react"
 import { useRequest } from "../service/GeneralApi"
-import type { DoctorCreate, DoctorPatch, DoctorResponse, DropdownProps, FormProps, TableColumns } from "../types"
+import type { DoctorCreate, DoctorPatch, DoctorResponse, DropdownProps, FormProps, PatientDoctorStatus, TableColumns } from "../types"
 import { CreateDoctor, GetAllDoctors, GetDoctor, PatchDoctor } from "../service/DoctorApi"
 import { Button, Dropdown, FormField, PopUp, Table } from "../components"
 import { useDoctors, useSpecialties } from "../context/context"
+import { WeeklySchedule } from "../components/WeeklySchedule"
 
 export const DoctorPage = () => {
 
@@ -11,14 +12,16 @@ export const DoctorPage = () => {
     const [isOpen, setIsOpen] = useState(false)
     const [isEditOpen, setIsEditOpen] = useState(false)
     const [isViewOpen, setIsViewOpen] = useState(false)
+    const [isScheduleOpen, setIsScheduleOpen] = useState(false)
     const [selectedDoctor, setSelectedDoctor] = useState<DoctorResponse>()
+    const [statusFilter, setStatusFilter] = useState('allstates')
     
     const blankForm = {
         fullName:'',
         email: '',
         licenseNumber: '',
         specialtyId: 0,
-        active: false
+        active: "ACTIVE"
     }
 
     const [createForm, setCreateForm] = useState<DoctorCreate>(blankForm)
@@ -26,14 +29,22 @@ export const DoctorPage = () => {
     const {specialties} = useSpecialties()
     const {doctors, setDoctors} = useDoctors()
 
+    const filteredDoctors = doctors.filter(o => statusFilter === 'allstates' ? true: o.active === statusFilter )
+
     const dropDownSpecialties: DropdownProps[]= specialties.map(s => ({
         display: s.name,
         value: s.id
     }))
 
     const dropDownActive: DropdownProps[]=[
-        {display: "Active", value: "true"},
-        {display: "Inactive", value: "false"},
+        {display: "Active", value: "ACTIVE"},
+        {display: "Inactive", value: "INACTIVE"},
+    ]
+
+    const dropDownFilter: DropdownProps[]=[
+        {display: "All States", value: "allstates"},
+        {display: "Active", value: "ACTIVE"},
+        {display: "Inactive", value: "INACTIVE"},
     ]
 
     const formFields :FormProps[]= [
@@ -45,7 +56,7 @@ export const DoctorPage = () => {
     const columns: TableColumns<DoctorResponse>[]= [
         {header: "Doctor", key:"fullName"},
         {header: "Specialty", key: "specialty", render: (value: any) => value?.name ?? "" },
-        {header: "state", key: "active", render: (value: any) => value ? "ACTIVE" : "INACTIVE"},
+        {header: "state", key: "active"},
         { header: "Actions", key: "id", render: (_value, row: any) => (
             <div>
                 <Button title="Edit" behavior={() => {setSelectedDoctor(row)
@@ -59,6 +70,9 @@ export const DoctorPage = () => {
                     setIsEditOpen(true); }}/>
                 <Button title="View" behavior={() => {setSelectedDoctor(row)
                     setIsViewOpen(true);}}/>
+                <Button title = "Schedules" behavior={() => {setSelectedDoctor(row)
+                setIsScheduleOpen(true)
+                }}></Button>
             </div>
             
         )},
@@ -106,7 +120,7 @@ export const DoctorPage = () => {
                 <main className="main-content">
                     <div>
                         <h1>Doctors</h1>
-                        <p>amount of active doctors {doctors.filter(d => d.active === true).length}</p>
+                        <p>amount of active doctors {doctors.filter(d => d.active === "ACTIVE").length}</p>
                         <p>total amount of doctors {doctors.length}</p>
                         <Button title="+ New Doctor" behavior={()=> setIsOpen(true)}/>
 
@@ -148,7 +162,7 @@ export const DoctorPage = () => {
                                     onChange={(value) => setEditForm({...editForm, specialtyId: Number(value)})} />
                             <Dropdown data={dropDownActive}
                                     value={editForm.active}
-                                    onChange={(value) => setEditForm({...editForm, active: value === "true"})} />
+                                    onChange={(value) => setEditForm({...editForm, active: value as PatientDoctorStatus})} />
 
                              <Button title="Save" behavior={() => {
                                 handlePatch(editForm, Number(selectedDoctor?.id))
@@ -165,11 +179,19 @@ export const DoctorPage = () => {
                                 <p><strong>Email:</strong> {selectedDoctor?.email}</p>
                                 <p><strong>License Number:</strong> {selectedDoctor?.licenseNumber}</p>
                                 <p><strong>Status:</strong> {selectedDoctor?.active}</p>
-                                <p><strong>Status:</strong> {selectedDoctor?.specialty.name}</p>
+                                <p><strong>Specialty:</strong> {selectedDoctor?.specialty.name}</p>
                             </div>
                             <Button title="Cancel" behavior={() => {setIsViewOpen(false)}}/>
                         </PopUp>
-                        <Table columns={columns} data={doctors}/>
+
+                        <PopUp isOpen={isScheduleOpen} onClose={() => setIsScheduleOpen(false)}>
+                            {selectedDoctor && <WeeklySchedule doctor={selectedDoctor} />}
+                            <Button title="Cancel" behavior={() => {setIsScheduleOpen(false)}}/>
+                        </PopUp>
+                <Dropdown data={dropDownFilter}
+                        value ={statusFilter}
+                        onChange={(value) => setStatusFilter(String(value))}/>
+                        <Table columns={columns} data={filteredDoctors}/>
                     </div>
                 </main>
             )

@@ -4,7 +4,7 @@ import type { ChangeEvent, Dispatch, ReactNode, SetStateAction } from "react"
 
 //Status
 
-export type PatientStatus = "ACTIVE" | "INACTIVE"
+export type PatientDoctorStatus = "ACTIVE" | "INACTIVE"
 export type OfficeStatus = "AVAILABLE" | "UNAVAILABLE" | "MAINTENANCE"
 export type DayOfWeek = "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY"
 
@@ -14,7 +14,7 @@ export interface PatientResponse{
     fullName: string
     email: string,
     phone: string,
-    status: PatientStatus,
+    status: PatientDoctorStatus,
     appointments: AppointmentResponse[]
 }
 
@@ -28,7 +28,7 @@ export interface PatientPatch{
     fullName: string,
     email: string,
     phone: string,
-    status: PatientStatus
+    status: PatientDoctorStatus
 }
 
 //Doctors
@@ -38,9 +38,9 @@ export interface DoctorResponse{
     fullName: string
     email:string,
     licenseNumber: string,
-    active: boolean
+    active: PatientDoctorStatus,
     specialty: SpecialtyResponse,
-    doctorSchedules:DoctorScheduleResponse,
+    doctorSchedules:DoctorScheduleResponse[],
     appointments: AppointmentResponse[]
 
 }
@@ -55,7 +55,7 @@ export interface DoctorCreate{
 export interface DoctorPatch{
     fullName:string,
     email: string,
-    active: boolean
+    active: PatientDoctorStatus,
     licenseNumber: string,
     specialtyId: number
 }
@@ -141,12 +141,12 @@ export interface AppointmentCreate{
 }
 
 export interface AppointmentCancel{
-    id: number,
+    id?: number,
     cancellationReason: string
 }
 
 export interface AppointmentCompletion{
-    id: number,
+    id?: number,
     observations: string
 }
 
@@ -221,12 +221,12 @@ export interface ButtonProps{
 
 export interface DropdownProps{
     display: string
-    value: string | number | boolean
+    value: string | number
 }
 
 export interface DropdownOptions<DropdownProps>{
     data:DropdownProps[]
-    value?: string | number | boolean,
+    value?: string | number,
     onChange?: (value: string|number)=> void
 }
 
@@ -234,10 +234,14 @@ export interface FormProps{
     label: string
     type: string,
     placeHolder?: string,
-    key: string
+    key?: string
     value?: string | number | boolean | AppointmentResponse[],
     onChange?: (e: ChangeEvent<HTMLInputElement>) => void
     
+}
+
+export interface WeeklyScheduleProps{
+    doctor: DoctorResponse
 }
 
 //--------Context---------

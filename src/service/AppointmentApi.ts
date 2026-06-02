@@ -61,3 +61,13 @@ export async function NoShowAppointment(appointmentId:number){
 
     return updated
 }
+
+export async function ConfirmAppointment(appointmentId: number){
+    const options={
+        method: 'PATCH'
+    }
+
+    const updated = await requestJson(`${API_URL}/appointments/${appointmentId}/confirm`, options)
+
+    return updated
+}
