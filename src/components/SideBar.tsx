@@ -9,6 +9,7 @@ const NAV = [
   { id: 'OfficesPage',   icon: 'meeting_room',    label: 'Consultorios',   path: '/OfficesPage' },
   { id: 'Appointments',  icon: 'assignment',      label: 'Citas',          path: '/AppointmentsPage' },
   { id: 'ReportsPage',   icon: 'bar_chart',       label: 'Reportes',       path: '/ReportsPage' },
+  { id: 'AvailabilityPage',   icon: 'bar_chart',       label: 'Availability',       path: '/AvailabilityPage' },
 ];
 
 export const SideBar = () => {

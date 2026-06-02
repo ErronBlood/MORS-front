@@ -11,16 +11,16 @@ export const DashboardPage = () => {
 
 
 
-        <main className="main-content" style={{ backgroundColor: '#f0f4f8', minHeight: '100vh' }}>
+        <main className="main-content">
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1 style={{ color: '#0d1b2a', fontWeight: 800 }}>Dashboard</h1>
+                <h1>Dashboard</h1>
             </div>
             <div className="row g-4 mb-4">
                 <div className="col-md-3">
                     <MetricCard label="Active Patients" value = {patients.filter(p =>p.status === "ACTIVE").length} info='' />
                 </div>
                 <div className="col-md-3">
-                    <MetricCard label="Active Doctors"  value = {doctors.filter(p =>p.active === true).length} info='' />
+                    <MetricCard label="Active Doctors"  value = {doctors.filter(p =>p.active === "ACTIVE").length} info='' />
                 </div>
                 <div className="col-md-3">
                     <MetricCard label="Pending Appointments" value = {appointments.filter(a => a.status === "SCHEDULED").length} info="Awaiting confirmation" />

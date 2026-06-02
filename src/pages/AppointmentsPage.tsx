@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useRequest } from "../service/GeneralApi"
 import type { AppointmentCancel, AppointmentCompletion, AppointmentCreate, AppointmentResponse, DropdownProps, FormProps, TableColumns } from "../types"
-import { CancelAppointment, CompleteAppointment, CreateAppointment, GetAllAppointments, GetAppointment, NoShowAppointment } from "../service/AppointmentApi"
+import { CancelAppointment, CompleteAppointment, ConfirmAppointment, CreateAppointment, GetAllAppointments, GetAppointment, NoShowAppointment } from "../service/AppointmentApi"
 import { Button, Dropdown, FormField, PopUp, Table } from "../components"
 import { useAppointments, useAppointmentTypes, useDoctors, useOffices, usePatients } from "../context/context"
 
@@ -9,7 +9,13 @@ import { useAppointments, useAppointmentTypes, useDoctors, useOffices, usePatien
 export const AppointmentsPage = () => {
         const {executeRequest} = useRequest()
         const [isOpen, setIsOpen] = useState(false)
-        const [SelectedAppointment, setSelectedAppointment] = useState(null)
+        const [isCancelOpen, setIsCancelOpen] = useState(false)
+        const [isCompletingOpen, setIsCompletingOpen] = useState(false)
+        const [SelectedAppointment, setSelectedAppointment] = useState<AppointmentResponse>()
+        const [doctorsFilter, setDoctorsFilter] = useState('alldoctors')
+        const [stateFilter, setStateFilter] = useState('allstates')
+        const [cancelForm, setCancelForm] = useState<AppointmentCancel>()
+        const [completionForm, setCompletionForm] = useState<AppointmentCompletion>()
 
         const blankForm = {
             startAt: '',
@@ -27,21 +33,34 @@ export const AppointmentsPage = () => {
         const {doctors} = useDoctors()
         const {appointmentTypes} = useAppointmentTypes()
         const {offices} = useOffices()
+        
+        const filteredAppointments = appointments.filter(a => {
+            const doctorMatch = doctorsFilter === 'alldoctors' || a.doctorId === Number(doctorsFilter)
+            const stateMatch = stateFilter === 'allstates' || a.status === stateFilter
+
+            return doctorMatch && stateMatch
+        })
 
         const statesDropdown: DropdownProps[]= [
-            {display: 'Scheduled', value: 'SCHEDULE'},
+            {display: 'All States', value: 'allstates'},
+            {display: 'Scheduled', value: 'SCHEDULED'},
             {display: 'Confirmed', value: 'CONFIRMED'},
             {display: 'Cancelled', value: 'CANCELLED'},
             {display: 'Completed', value: 'COMPLETED'},
             {display: 'No Show', value: 'NO_SHOW'}
         ]
 
-        const doctorsDropdown: DropdownProps[] = doctors.map(
+        const docs = doctors.map(
             d => ({
                 display: d.fullName,
                 value: d.id
             })
         )
+
+        const doctorsDropdown: DropdownProps[] =[
+            {display: 'All Doctors', value: 'alldoctors'},
+            ...docs
+        ]
 
         const typesDropdown: DropdownProps[] = appointmentTypes.map(
             a => ({
@@ -74,7 +93,23 @@ export const AppointmentsPage = () => {
             {header: "Patient", key: "patientId", render: (value: any) => patients.find(p => p.id === value)?.fullName ?? String(value)},
             {header: "Doctor", key: "doctorId", render: (value: any) => doctors.find(d => d.id === value)?.fullName ?? String(value)},
             {header: "Office", key: "officeId"},
-            {header: "status", key: "status"}
+            {header: "status", key: "status"},
+            { header: "Actions", key: "id", render: (_value, row: any) => {
+                const availableActions = appointmentActions[row.status as keyof typeof appointmentActions] ?? [];
+                return (
+                    <div>
+                        {availableActions.map(action => (
+                            <Button
+                                key={action}
+                                title={actionConfig[action].label}
+                                behavior={() =>{ actionConfig[action].handler(row.id)
+                                    setSelectedAppointment(row)
+                                }}
+                            />
+                        ))}
+                    </div>
+                )
+            }}
         ]
         
          async function LoadAppointments(){
@@ -118,14 +153,44 @@ export const AppointmentsPage = () => {
         }
 
         async function handleCompletion(appointment:AppointmentCompletion, appointmentId:number){
-            const cancelledAppointment = await executeRequest('Patient successfully patched',
+            const completedAppointment = await executeRequest('Patient successfully patched',
                  () => CompleteAppointment(appointment,appointmentId))
                 
-            if(cancelledAppointment){
-                setAppointments((current) => current.map((a) => a.id === appointmentId ? cancelledAppointment : a))
-                setSelectedAppointment(cancelledAppointment)
+            if(completedAppointment){
+                setAppointments((current) => current.map((a) => a.id === appointmentId ? completedAppointment : a))
+                setSelectedAppointment(completedAppointment)
             }
         }
+
+        async function handleConfirm(appointmentId:number){
+            const confirmedAppointment = await executeRequest('Patient successfully patched',
+                 () => ConfirmAppointment(appointmentId))
+                
+            if(confirmedAppointment){
+                setAppointments((current) => current.map((a) => a.id === appointmentId ? confirmedAppointment : a))
+                setSelectedAppointment(confirmedAppointment)
+            }
+        }
+
+        const appointmentActions: Record<string, (keyof typeof actionConfig)[]> = {
+             SCHEDULED:  ['confirm', 'cancel'],
+             CONFIRMED:  ['complete', 'cancel', 'noshow'],
+             COMPLETED:  [],
+             CANCELLED:  [],
+             NO_SHOW:    [],
+        }
+
+        const actionConfig = {
+            confirm:  { label: 'Confirm',   handler: (id: number) => handleConfirm(id) },
+            cancel:   { label: 'Cancel',    handler: (row: AppointmentResponse) => {setSelectedAppointment(row)
+                setIsCancelOpen(true)
+            }},
+            complete: { label: 'Complete',  handler: (row: AppointmentResponse) =>{setSelectedAppointment(row)
+                setIsCompletingOpen(true)
+            }},
+            noshow:   { label: 'No Show',   handler: (id:number) => handleNoShow(id) },
+        }
+
 
         useEffect(() => {
             if (patients.length > 0 && doctors.length > 0 && 
@@ -145,7 +210,7 @@ export const AppointmentsPage = () => {
                 <main className="main-content">
                     <div>
                         <h1>Appointments</h1>
-                        <p>current x amount of y patients</p>
+                        <p> {appointments.length} appointments stored </p>
                         <Button title="+ New Appointment" behavior={()=> setIsOpen(true)}/>
                         <PopUp isOpen = {isOpen} onClose={()=> setIsOpen(false)}>
 
@@ -183,21 +248,59 @@ export const AppointmentsPage = () => {
                                 type={f.type}
                                 key={f.key}
                                 value={formData[f.key as keyof AppointmentCreate]}
-                                onChange={(e) => setFormData({...formData, [f.key]: e.target.value })}
+                                onChange={(e) => setFormData({...formData, [f.key!]: e.target.value })}
                                 />
                             ))}
 
-                            <Button title="Registrar" behavior={() => {handleCreate(formData)
+                            <Button title="Save" behavior={() => {handleCreate(formData)
                                 setIsOpen(false),
                                 setFormData(blankForm)
                             }}/>
-                            <Button title="Cancelar" behavior={() => {setIsOpen(false)}}/>
+                            <Button title="Cancel" behavior={() => {setIsOpen(false)}}/>
                         </PopUp>
 
-                        <Dropdown data={doctorsDropdown} />
+                        <PopUp isOpen={isCancelOpen} onClose={() => setIsCancelOpen(false)}>
+                            <FormField label="Cancellation Reason"
+                            type="text"
+                            placeHolder="Brief reason why the appointment was cancelled"
+                            value={cancelForm?.cancellationReason}
+                            onChange={(e) => setCancelForm({cancellationReason: e.target.value})}
+                            />
 
-                        <Dropdown data = {statesDropdown}/>
-                        <Table columns={columns} data={appointments}/>
+                            <Button
+                            title="Confirm Cancellation"
+                            behavior={() =>{ handleCancel(cancelForm! ,Number (SelectedAppointment?.id))
+                                setIsCancelOpen(false)
+                            }}
+                            
+                            />
+                        </PopUp>
+
+                        <PopUp isOpen={isCompletingOpen} onClose={() => setIsCompletingOpen(false)}>
+                            <FormField label="Completion notes"
+                            type="text"
+                            placeHolder="Summary of the results of the appointment"
+                            value={completionForm?.observations}
+                            onChange={(e) => setCompletionForm({observations: e.target.value})}
+                            />
+
+                            <Button
+                            title="Confirm Completion"
+                            behavior={() =>{handleCompletion(completionForm! ,Number (SelectedAppointment?.id))
+                                setIsCompletingOpen(false)
+                            }}
+                            />
+                        </PopUp>
+
+                        <Dropdown data={doctorsDropdown}
+                        value={doctorsFilter}
+                        onChange={(value) => setDoctorsFilter(String(value)) }  />
+
+                        <Dropdown data = {statesDropdown} 
+                        value={stateFilter}
+                        onChange={(value) => setStateFilter(String(value))}
+                        />
+                        <Table columns={columns} data={filteredAppointments}/>
                     </div>
                 </main>
         )

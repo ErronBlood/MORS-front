@@ -16,6 +16,7 @@ import { GetAllSpecialties } from './service/SpecialtyApi'
 import { GetAllOffices } from './service/OfficeApi'
 import { GetAllAppointmentTypes } from './service/AppointmentTypeApi'
 import { GetAllAppointments } from './service/AppointmentApi'
+import { AvailabilityPage } from './pages/AvailabilityPage'
 
 
   const AppDataLoader = () => {
@@ -62,6 +63,7 @@ function App() {
           <Route path = '/DoctorsPage' element = {<DoctorPage/>}></Route>
           <Route path = '/CatalogPage' element = {<CatalogPage/>}></Route>
           <Route path = '/OfficesPage' element = {<OfficesPage/>}></Route>
+          <Route path = '/AvailabilityPage' element = {<AvailabilityPage/>}></Route>
         </Routes>
       </SpecialtiesProvider>
       </AppointmentProvider>
